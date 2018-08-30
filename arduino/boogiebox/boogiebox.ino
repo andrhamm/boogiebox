@@ -1,3 +1,4 @@
+#include <Adafruit_NeoPixel.h>
 #include <JC_Button.h>
 #include <SPI.h>
 #include <Adafruit_VS1053.h>
@@ -14,12 +15,12 @@
   #define VS1053_DREQ     0     // VS1053 Data request, ideally an Interrupt pin
 
 // Feather M4 M0, 328, or 32u4
-#else
-  #define VS1053_CS       6     // VS1053 chip select pin (output)
-  #define VS1053_DCS     10     // VS1053 Data/command select pin (output)
-  #define CARDCS          5     // Card chip select pin
-  // DREQ should be an Int pin *if possible* (not possible on 32u4)
-  #define VS1053_DREQ     9     // VS1053 Data request, ideally an Interrupt pin
+//#else
+//  #define VS1053_CS       6     // VS1053 chip select pin (output)
+//  #define VS1053_DCS     10     // VS1053 Data/command select pin (output)
+//  #define CARDCS          5     // Card chip select pin
+//  // DREQ should be an Int pin *if possible* (not possible on 32u4)
+//  #define VS1053_DREQ     9     // VS1053 Data request, ideally an Interrupt pin
 
 #endif
 
@@ -162,21 +163,21 @@ void loop()
         transition(TO_PLAYER);
       } else if (btn2.wasReleased() || btn3.wasReleased() || btn4.wasReleased() || btn5.wasReleased()) {
         if (btn2.wasReleased()) {
-          selectBuffer[selectBufferIndex++] = F("0");
+          selectBuffer[selectBufferIndex++] = '1';
         } else if (btn3.wasReleased()) {
-          selectBuffer[selectBufferIndex++] = F("1");
+          selectBuffer[selectBufferIndex++] = '1';
         } else if (btn4.wasReleased()) {
-          selectBuffer[selectBufferIndex++] = F("2");
+          selectBuffer[selectBufferIndex++] = '2';
         } else if (btn5.wasReleased()) {
-          selectBuffer[selectBufferIndex++] = F("3");
+          selectBuffer[selectBufferIndex++] = '3';
         }
 
         // color code completed
         if (selectBufferIndex == 4) {
           selectBufferIndex = 0;
-          lastSelection = selectBuffer;
-          String track = F("song") + str(selectBuffer) + F(".mp3");
-          Serial.println(F("Playing track ") + track);
+          strcpy(selectBuffer, lastSelection);
+          char track[] = {'song', *selectBuffer, '.mp3'};
+          Serial.println('Playing track ' + track);
           musicPlayer.startPlayingFile(track);
           transition(TO_PLAYER);
         } else {
@@ -244,7 +245,7 @@ void loop()
           changeVolume(lowVol, true, true);
         } else if (btn3.wasReleased()) {
           Serial.println(F("Vol: set normal"));
-          changeVolume(lowReg, true, true);
+          changeVolume(regVol, true, true);
         } else if (btn4.wasReleased()) {
           Serial.println(F("Vol: down"));
           changeVolume(5, false, false);
@@ -270,14 +271,14 @@ void loop()
   }
 
   // Some example procedures showing how to display to the pixels:
-  colorWipe(strip.Color(255, 0, 0), 50); // Red
-  colorWipe(strip.Color(0, 255, 0), 50); // Green
-  colorWipe(strip.Color(0, 0, 255), 50); // Blue
-  //colorWipe(strip.Color(0, 0, 0, 255), 50); // White RGBW
+  colorWipe(neopixel.Color(255, 0, 0), 50); // Red
+  colorWipe(neopixel.Color(0, 255, 0), 50); // Green
+  colorWipe(neopixel.Color(0, 0, 255), 50); // Blue
+  //colorWipe(neopixel.Color(0, 0, 0, 255), 50); // White RGBW
   // Send a theater pixel chase in...
-  theaterChase(strip.Color(127, 127, 127), 50); // White
-  theaterChase(strip.Color(127, 0, 0), 50); // Red
-  theaterChase(strip.Color(0, 0, 127), 50); // Blue
+  theaterChase(neopixel.Color(127, 127, 127), 50); // White
+  theaterChase(neopixel.Color(127, 0, 0), 50); // Red
+  theaterChase(neopixel.Color(0, 0, 127), 50); // Blue
 
   rainbow(20);
   rainbowCycle(20);
@@ -285,12 +286,12 @@ void loop()
 }
 
 
-void transition(toState) {
+void transition(uint8_t toState) {
   lastTransitionMs = millis();
   STATE = toState;
 }
 
-bool transitionTimeout(timeoutInSeconds) {
+bool transitionTimeout(uint8_t timeoutInSeconds) {
   return millis() - lastTransitionMs >= timeoutInSeconds*1000;
 }
 
